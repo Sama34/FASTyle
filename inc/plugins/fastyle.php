@@ -105,9 +105,9 @@ function fastyle_plugin_edit()
 {
     global $mybb;
 
-    if ($mybb->input['my_post_key'] == $mybb->post_code) {
+    if ($mybb->get_input('my_post_key') == $mybb->post_code) {
 
-        if ($mybb->input['fastyle'] == 'apply') {
+        if ($mybb->get_input('fastyle') == 'apply') {
             if (fastyle_apply_core_edits(true) === true) {
                 flash_message('Successfully applied core edits.', 'success');
                 admin_redirect('index.php?module=config-plugins');
@@ -119,7 +119,7 @@ function fastyle_plugin_edit()
 
         }
 
-        if ($mybb->input['fastyle'] == 'revert') {
+        if ($mybb->get_input('fastyle') == 'revert') {
 
             if (fastyle_revert_core_edits(true) === true) {
                 flash_message('Successfully reverted core edits.', 'success');
@@ -262,7 +262,7 @@ function fastyle_themes_hijack_function()
 {
     global $page, $form, $mybb, $db, $theme_cache, $theme, $lang, $originalList, $resourcelist;
 
-    if (!$theme and $mybb->input['sid']) {
+    if (!$theme and $mybb->get_input('sid')) {
 
         // From templates. Work out if there's an associated theme and redirect
         $sets = [];
@@ -273,8 +273,8 @@ function fastyle_themes_hijack_function()
             $sets[$prop['templateset']] = $t['tid'];
         }
 
-        if ($sets[$mybb->input['sid']]) {
-            header('Location: index.php?module=style-themes&action=edit&tid=' . (int) $sets[$mybb->input['sid']]);
+        if ($sets[$mybb->get_input('sid')]) {
+            header('Location: index.php?module=style-themes&action=edit&tid=' . (int) $sets[$mybb->get_input('sid')]);
             exit;
         }
 
@@ -289,8 +289,8 @@ function fastyle_themes_hijack_function()
     if ($theme['properties']['templateset']) {
         $sid = (int) $theme['properties']['templateset'];
     }
-    else if ($mybb->input['sid']) {
-        $sid = (int) $mybb->input['sid'];
+    else if ($mybb->get_input('sid', \MyBB::INPUT_INT)) {
+        $sid = (int) $mybb->get_input('sid', \MyBB::INPUT_INT);
     }
 
     // Get a list of templates
@@ -541,7 +541,12 @@ function fastyle_themes_hijack_function()
 
                 $colors = [];
 
-                if (!is_array($properties['colors'])) {
+                if(!isset($properties))
+                {
+                    $properties = [];
+                }
+
+                if (!isset($properties['colors']) || !is_array($properties['colors'])) {
                     $properties['colors'] = [];
                 }
 
@@ -672,7 +677,7 @@ function fastyle_themes_hijack_function()
                     $count = count($intersect);
                     $md5 = md5(serialize($intersect));
 
-                    if ($templatesTree[$md5]) {
+                    if (!empty($templatesTree[$md5])) {
                         $tier = $templatesTree[$md5];
                     }
                     else if ($intersect == $lastFragments or $count > $lastTier) {
@@ -822,7 +827,7 @@ function fastyle_themes_hijack_function()
 
     $resourcelist .= "</ul>";
 
-    if ($mybb->input['sid']) {
+    if ($mybb->get_input('sid')) {
 
         global $sub_tabs;
 
@@ -883,7 +888,7 @@ HTML;
     echo fastyle_load_javascript($sid, $tid);
     echo "<br>";
 
-    if ($mybb->input['sid']) {
+    if ($mybb->get_input('sid')) {
         $page->output_footer();
         exit;
     }
@@ -894,13 +899,13 @@ function fastyle_templates_edit()
 {
 	global $page, $mybb, $db, $sid, $lang;
 
-	if ($mybb->input['ajax']) {
+	if ($mybb->get_input('ajax')) {
 
-		if (empty($mybb->input['title'])) {
+		if (empty($mybb->get_input('title'))) {
 			$errors[] = $lang->error_missing_title;
 		}
 
-		if (check_template($mybb->input['template'])) {
+		if (check_template($mybb->get_input('template'))) {
 			$errors[] = $lang->error_security_problem;
 		}
 
@@ -916,19 +921,19 @@ function fastyle_templates_edit_commit()
 {
 	global $template, $mybb, $set, $lang;
 
-	if ($mybb->input['ajax']) {
+	if ($mybb->get_input('ajax')) {
 
 		$lang->load('fastyle');
 
-		log_admin_action($template['tid'], $mybb->input['title'], $mybb->input['sid'], $set['title']);
+		log_admin_action($template['tid'], $mybb->get_input('title'), $mybb->get_input('sid'), $set['title']);
 
 		$data = [
-			'message' => $lang->sprintf($lang->fastyle_success_saved, $mybb->input['title'])
+			'message' => $lang->sprintf($lang->fastyle_success_saved, $mybb->get_input('title'))
 		];
 
 		// Check if the tid coming from the browser matches the one returned from the db. If it doesn't = new template,
 		// pass the tid to the client which will update its own tid
-		if ($template['tid'] != $mybb->input['tid']) {
+		if ($template['tid'] != $mybb->get_input('tid')) {
 			$data['tid'] = $template['tid'];
 		}
 
@@ -942,7 +947,7 @@ function fastyle_themes_edit_advanced_commit()
 {
 	global $mybb, $theme, $lang, $stylesheet;
 
-	if ($mybb->request_method == "post" and $mybb->input['ajax']) {
+	if ($mybb->request_method == "post" and $mybb->get_input('ajax')) {
 
 		log_admin_action(htmlspecialchars_uni($theme['name']), $stylesheet['name']);
 
@@ -962,7 +967,7 @@ function fastyle_admin_config_settings_change_commit()
 {
 	global $mybb, $errors, $cache, $lang;
 
-	if ($mybb->request_method == "post" and $mybb->input['ajax']) {
+	if ($mybb->request_method == "post" and $mybb->get_input('ajax')) {
 
 		if (!$errors) {
 
