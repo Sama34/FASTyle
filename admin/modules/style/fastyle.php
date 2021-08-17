@@ -8,6 +8,7 @@ require_once MYBB_ADMIN_DIR."inc/functions_themes.php";
 
 $lang->load('style_themes');
 $lang->load('style_templates');
+$lang->load('fastyle');
 
 $page->add_breadcrumb_item($lang->fastyle, "index.php?module=style-fastyle");
 

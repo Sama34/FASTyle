@@ -901,6 +901,8 @@ function fastyle_templates_edit()
 
 	if ($mybb->get_input('ajax')) {
 
+        $errors = [];
+
 		if (empty($mybb->get_input('title'))) {
 			$errors[] = $lang->error_missing_title;
 		}
@@ -925,7 +927,11 @@ function fastyle_templates_edit_commit()
 
 		$lang->load('fastyle');
 
-		log_admin_action($template['tid'], $mybb->get_input('title'), $mybb->get_input('sid'), $set['title']);
+        $tid = isset($template['tid']) ? (int)$template['tid'] : 0;
+
+        $title = isset($set['title']) ? $set['title'] : '';
+
+		log_admin_action($tid, $mybb->get_input('title'), $mybb->get_input('sid'),  $title);
 
 		$data = [
 			'message' => $lang->sprintf($lang->fastyle_success_saved, $mybb->get_input('title'))
@@ -933,8 +939,8 @@ function fastyle_templates_edit_commit()
 
 		// Check if the tid coming from the browser matches the one returned from the db. If it doesn't = new template,
 		// pass the tid to the client which will update its own tid
-		if ($template['tid'] != $mybb->get_input('tid')) {
-			$data['tid'] = $template['tid'];
+		if ($tid != $mybb->get_input('tid')) {
+			$data['tid'] = $tid;
 		}
 
 		fastyle_message($data);
