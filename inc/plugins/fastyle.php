@@ -159,7 +159,7 @@ function fastyle_apply_core_edits($apply = false)
         ],
     ];
 
-    $result = $PL->edit_core('fastyle', $mybb->config['admin_dir'] . '/modules/style/themes.php', $edits, $apply);
+    $result = $PL->edit_core('fastyle', ($mybb->config['admin_dir'] ?? '') . '/modules/style/themes.php', $edits, $apply);
 
     if ($result !== true) {
         $errors[] = $result;
@@ -289,7 +289,7 @@ function fastyle_themes_hijack_function()
     if ($theme['properties']['templateset']) {
         $sid = (int) $theme['properties']['templateset'];
     }
-    else if ($mybb->get_input('sid', \MyBB::INPUT_INT)) {
+    elseif ($mybb->get_input('sid', \MyBB::INPUT_INT)) {
         $sid = (int) $mybb->get_input('sid', \MyBB::INPUT_INT);
     }
 
@@ -353,6 +353,11 @@ function fastyle_themes_hijack_function()
         }
         // Otherwise, if we are down to master templates we need to do a few extra things
         else {
+			$template_groups[$group]['templates'][$template['title']]['template'] = $template_groups[$group]['templates'][$template['title']]['template'] ?? '';
+
+			$template['template'] = $template['template'] ?? '';
+
+			$template_groups[$group]['templates'][$template['title']]['sid'] = $template_groups[$group]['templates'][$template['title']]['sid'] ?? 0;
 
             // Master template
             if (!isset($template_groups[$group]['templates'][$template['title']])) {
@@ -362,11 +367,11 @@ function fastyle_themes_hijack_function()
 
             }
             // Template that hasn't been customised in the set we have expanded
-            else if ($template_groups[$group]['templates'][$template['title']]['template'] == $template['template']) {
+            elseif ($template_groups[$group]['templates'][$template['title']]['template'] == $template['template']) {
                 $template_groups[$group]['templates'][$template['title']]['original'] = true;
             }
             // Template has been modified in the set we have expanded (it doesn't match the master)
-            else if ($template_groups[$group]['templates'][$template['title']]['template'] != $template['template'] and $template_groups[$group]['templates'][$template['title']]['sid'] != -2) {
+            elseif ($template_groups[$group]['templates'][$template['title']]['template'] != $template['template'] && $template_groups[$group]['templates'][$template['title']]['sid'] != -2) {
                 $template_groups[$group]['templates'][$template['title']]['modified'] = true;
             }
 
@@ -666,7 +671,7 @@ function fastyle_themes_hijack_function()
                     $originalOrModified = '';
 
                     // Strip out the prefix first
-                    $displayTitle = str_replace($prefix . '_', '', $template['title']);
+                    $displayTitle = str_replace($prefix . '_', '', $template['title'] ?? '');
 
                     $fragments = explode('_', $displayTitle, 4);
 
@@ -680,10 +685,10 @@ function fastyle_themes_hijack_function()
                     if (!empty($templatesTree[$md5])) {
                         $tier = $templatesTree[$md5];
                     }
-                    else if ($intersect == $lastFragments or $count > $lastTier) {
+                    elseif ($intersect == $lastFragments or $count > $lastTier) {
                         $tier = $lastTier + 1;
                     }
-                    else if ($count > 0 and $count == $lastTier) {
+                    elseif ($count > 0 and $count == $lastTier) {
                         $tier = $lastTier;
                     }
 
@@ -703,9 +708,13 @@ function fastyle_themes_hijack_function()
                     if (isset($template['modified']) && $template['modified'] == true) {
                         $originalOrModified = ' data-status="modified"';
                     }
-                    else if (isset($template['original']) && $template['original'] == false) {
+                    elseif (isset($template['original']) && $template['original'] == false) {
                         $originalOrModified = ' data-status="original"';
                     }
+
+					$template['tid'] = $template['tid'] ?? 0;
+
+					$template['title'] = $template['title'] ?? '';
 
                     $resourcelist .= "<li class='tier-{$tier}' data-tid='{$template['tid']}' data-title='{$template['title']}'{$originalOrModified}><i class='far fa-sticky-note'></i> {$displayTitle}</li>";
 
@@ -792,7 +801,7 @@ function fastyle_themes_hijack_function()
                     $folders[] = "</ul>";
 
                 }
-                else if (get_extension($file) == 'js') {
+                elseif (get_extension($file) == 'js') {
                     $_files[] = "<li data-title='{$relative}' data-status='{$status}'><i class='fab fa-node-js'></i> {$file}</li>";
                 }
 

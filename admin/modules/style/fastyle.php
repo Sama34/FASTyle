@@ -79,7 +79,7 @@ if (isset($mybb->input['api'])) {
             $dateline = $template['dateline'];
 
         }
-        else if ($mode == 'javascripts') {
+        elseif ($mode == 'javascripts') {
 
             $path = MYBB_ROOT . 'jscripts/' . $mybb->get_input('title');
 
@@ -154,7 +154,7 @@ if (isset($mybb->input['api'])) {
             fastyle_message(['message' => $lang->success_template_reverted, 'tid' => $template['tid'], 'content' => $template['template']]);
 
         }
-        else if ($mode == 'javascripts') {
+        elseif ($mode == 'javascripts') {
 
             $mybb->input['content'] = \fetch_remote_file('https://github.com/mybb/mybb/raw/' . urlencode('mybb_' . $mybb->version_code) . DIRECTORY_SEPARATOR . urlencode('jscripts/' . $mybb->get_input('title')));
 
@@ -246,7 +246,7 @@ if (isset($mybb->input['api'])) {
             fastyle_message($lang->success_stylesheet_deleted);
 
         }
-        else if ($mode == 'javascripts') {
+        elseif ($mode == 'javascripts') {
 
             $folder = MYBB_ROOT . 'jscripts';
 
@@ -331,7 +331,7 @@ fastyle_message($lang->success_template_group_deleted);
             $content = $db->fetch_field($query, 'template');
 
         }
-        else if ($mode == 'javascripts') {
+        elseif ($mode == 'javascripts') {
             $content = \fetch_remote_file('https://github.com/mybb/mybb/raw/' . urlencode('mybb_' . $mybb->version_code) . DIRECTORY_SEPARATOR . urlencode('jscripts/' . $mybb->get_input('title')));
         }
         else {
@@ -408,7 +408,7 @@ fastyle_message($lang->success_template_group_deleted);
 
         }
         // JavaScript
-        else if ($mode == 'javascripts') {
+        elseif ($mode == 'javascripts') {
 
             // Remove special characters
             $title = preg_replace('#([^a-zA-Z0-9-_\.\/]+)#i', '', $mybb->get_input('title'));
