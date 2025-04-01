@@ -10,11 +10,11 @@
  */
 
 if (!defined('IN_MYBB')) {
-	die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
+    die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
 }
 
-if (!defined("PLUGINLIBRARY")) {
-	define("PLUGINLIBRARY", MYBB_ROOT . "inc/plugins/pluginlibrary.php");
+if (!defined('PLUGINLIBRARY')) {
+    define('PLUGINLIBRARY', MYBB_ROOT . 'inc/plugins/pluginlibrary.php');
 }
 
 function fastyle_info()
@@ -22,13 +22,13 @@ function fastyle_info()
     fastyle_plugin_edit();
 
     if (fastyle_is_installed()) {
-
         global $PL, $mybb;
 
         $PL or require_once PLUGINLIBRARY;
 
         if (fastyle_apply_core_edits() !== true) {
-            $apply = $PL->url_append('index.php',
+            $apply = $PL->url_append(
+                'index.php',
                 [
                     'module' => 'config-plugins',
                     'fastyle' => 'apply',
@@ -36,9 +36,9 @@ function fastyle_info()
                 ]
             );
             $description = "<br><br>Core edits missing. <a href='{$apply}'>Apply core edits.</a>";
-        }
-        else {
-            $revert = $PL->url_append('index.php',
+        } else {
+            $revert = $PL->url_append(
+                'index.php',
                 [
                     'module' => 'config-plugins',
                     'fastyle' => 'revert',
@@ -47,58 +47,57 @@ function fastyle_info()
             );
             $description = "<br><br>Core edits in place. <a href='{$revert}'>Revert core edits.</a>";
         }
-
     }
 
-	return [
-		'name' => 'FASTyle',
-		'description' => 'An all-in-one utility to improve and speed up stylesheets, settings and templates management.' . $description,
-		'author' => 'Shade',
-		'website' => 'https://www.mybboost.com/forum-fastyle',
-		'version' => '2.3',
-		'codename' => 'fastyle',
-		'compatibility' => '18*'
-	];
+    return [
+        'name' => 'FASTyle',
+        'description' => 'An all-in-one utility to improve and speed up stylesheets, settings and templates management.' . $description,
+        'author' => 'Shade',
+        'website' => 'https://www.mybboost.com/forum-fastyle',
+        'version' => '2.3',
+        'codename' => 'fastyle',
+        'compatibility' => '18*'
+    ];
 }
 
 function fastyle_is_installed()
 {
-	global $cache;
+    global $cache;
 
-	$installed = $cache->read("shade_plugins");
-	if ($installed['FASTyle']) {
-		return true;
-	}
+    $installed = $cache->read('shade_plugins');
+    if ($installed['FASTyle']) {
+        return true;
+    }
 }
 
 function fastyle_install()
 {
-	global $cache, $mybb;
+    global $cache, $mybb;
 
     fastyle_apply_core_edits(true);
 
-	// Create cache
-	$info                         = fastyle_info();
-	$shade_plugins                = $cache->read('shade_plugins');
-	$shade_plugins[$info['name']] = [
-		'title' => $info['name'],
-		'version' => $info['version']
-	];
+    // Create cache
+    $info = fastyle_info();
+    $shade_plugins = $cache->read('shade_plugins');
+    $shade_plugins[$info['name']] = [
+        'title' => $info['name'],
+        'version' => $info['version']
+    ];
 
-	$cache->update('shade_plugins', $shade_plugins);
+    $cache->update('shade_plugins', $shade_plugins);
 }
 
 function fastyle_uninstall()
 {
-	global $cache;
+    global $cache;
 
     fastyle_revert_core_edits(true);
 
-	// Delete the plugin from cache
-	$info         = fastyle_info();
-	$shade_plugins = $cache->read('shade_plugins');
-	unset($shade_plugins[$info['name']]);
-	$cache->update('shade_plugins', $shade_plugins);
+    // Delete the plugin from cache
+    $info = fastyle_info();
+    $shade_plugins = $cache->read('shade_plugins');
+    unset($shade_plugins[$info['name']]);
+    $cache->update('shade_plugins', $shade_plugins);
 }
 
 function fastyle_plugin_edit()
@@ -106,32 +105,25 @@ function fastyle_plugin_edit()
     global $mybb;
 
     if ($mybb->get_input('my_post_key') == $mybb->post_code) {
-
         if ($mybb->get_input('fastyle') == 'apply') {
             if (fastyle_apply_core_edits(true) === true) {
                 flash_message('Successfully applied core edits.', 'success');
                 admin_redirect('index.php?module=config-plugins');
-            }
-            else {
+            } else {
                 flash_message('There was an error applying core edits.', 'error');
                 admin_redirect('index.php?module=config-plugins');
             }
-
         }
 
         if ($mybb->get_input('fastyle') == 'revert') {
-
             if (fastyle_revert_core_edits(true) === true) {
                 flash_message('Successfully reverted core edits.', 'success');
                 admin_redirect('index.php?module=config-plugins');
-            }
-            else {
+            } else {
                 flash_message('There was an error reverting core edits.', 'error');
                 admin_redirect('index.php?module=config-plugins');
             }
-
         }
-
     }
 }
 
@@ -159,7 +151,12 @@ function fastyle_apply_core_edits($apply = false)
         ],
     ];
 
-    $result = $PL->edit_core('fastyle', ($mybb->config['admin_dir'] ?? '') . '/modules/style/themes.php', $edits, $apply);
+    $result = $PL->edit_core(
+        'fastyle',
+        ($mybb->config['admin_dir'] ?? '') . '/modules/style/themes.php',
+        $edits,
+        $apply
+    );
 
     if ($result !== true) {
         $errors[] = $result;
@@ -167,8 +164,7 @@ function fastyle_apply_core_edits($apply = false)
 
     if (count($errors) >= 1) {
         return $errors;
-    }
-    else {
+    } else {
         return true;
     }
 }
@@ -184,40 +180,38 @@ function fastyle_revert_core_edits($apply = false)
 
 // Hooks
 if (defined('IN_ADMINCP')) {
+    $plugins->add_hook('admin_load', 'fastyle_ad');
+    $plugins->add_hook('admin_style_templates_edit_template', 'fastyle_templates_edit');
+    $plugins->add_hook('admin_style_templates_edit_template_commit', 'fastyle_templates_edit_commit');
+    $plugins->add_hook('admin_style_themes_edit_stylesheet_advanced_commit', 'fastyle_themes_edit_advanced_commit');
+    $plugins->add_hook('admin_config_settings_change', 'fastyle_admin_config_settings_change', 1000);
+    $plugins->add_hook('admin_config_settings_change_commit', 'fastyle_admin_config_settings_change_commit');
 
-	$plugins->add_hook("admin_load", "fastyle_ad");
-	$plugins->add_hook("admin_style_templates_edit_template", "fastyle_templates_edit");
-	$plugins->add_hook("admin_style_templates_edit_template_commit", "fastyle_templates_edit_commit");
-	$plugins->add_hook("admin_style_themes_edit_stylesheet_advanced_commit", "fastyle_themes_edit_advanced_commit");
-	$plugins->add_hook("admin_config_settings_change", "fastyle_admin_config_settings_change", 1000);
-	$plugins->add_hook("admin_config_settings_change_commit", "fastyle_admin_config_settings_change_commit");
-
-	// Custom module
-	$plugins->add_hook("admin_style_action_handler", "fastyle_admin_style_action_handler");
+    // Custom module
+    $plugins->add_hook('admin_style_action_handler', 'fastyle_admin_style_action_handler');
 
     // Main thing
-    $plugins->add_hook("admin_style_themes_edit", "fastyle_load_header");
-    $plugins->add_hook("admin_style_templates_set", "fastyle_load_header");
-    $plugins->add_hook("admin_style_templates_set", "fastyle_themes_hijack_function");
-    $plugins->add_hook("fastyle_themes_hijack", "fastyle_themes_hijack_function");
-
+    $plugins->add_hook('admin_style_themes_edit', 'fastyle_load_header');
+    $plugins->add_hook('admin_style_templates_set', 'fastyle_load_header');
+    $plugins->add_hook('admin_style_templates_set', 'fastyle_themes_hijack_function');
+    $plugins->add_hook('fastyle_themes_hijack', 'fastyle_themes_hijack_function');
 }
 
 // Advertising
 function fastyle_ad()
 {
-	global $cache, $mybb;
+    global $cache, $mybb;
 
-	$plugins = $cache->read('shade_plugins');
-	if (!in_array($mybb->user['uid'], (array) $plugins['FASTyle']['ad_shown'])) {
+    $plugins = $cache->read('shade_plugins');
+    if (!in_array($mybb->user['uid'], (array)$plugins['FASTyle']['ad_shown'])) {
+        flash_message(
+            'Thank you for downloading FASTyle! You might also be interested in other great plugins at <a href="https://www.mybboost.com">MyBBoost</a>.<br /><small>This message will not be shown again to you.</small>',
+            'success'
+        );
 
-		flash_message('Thank you for downloading FASTyle! You might also be interested in other great plugins at <a href="https://www.mybboost.com">MyBBoost</a>.<br /><small>This message will not be shown again to you.</small>', 'success');
-
-		$plugins['FASTyle']['ad_shown'][] = $mybb->user['uid'];
-		$cache->update('shade_plugins', $plugins);
-
-	}
-
+        $plugins['FASTyle']['ad_shown'][] = $mybb->user['uid'];
+        $cache->update('shade_plugins', $plugins);
+    }
 }
 
 function fastyle_load_header()
@@ -263,58 +257,58 @@ function fastyle_themes_hijack_function()
     global $page, $form, $mybb, $db, $theme_cache, $theme, $lang, $originalList, $resourcelist;
 
     if (!$theme and $mybb->get_input('sid')) {
-
         // From templates. Work out if there's an associated theme and redirect
         $sets = [];
 
-        $query = $db->simple_select("themes", "properties, tid");
+        $query = $db->simple_select('themes', 'properties, tid');
         while ($t = $db->fetch_array($query)) {
             $prop = my_unserialize($t['properties']);
             $sets[$prop['templateset']] = $t['tid'];
         }
 
         if ($sets[$mybb->get_input('sid')]) {
-            header('Location: index.php?module=style-themes&action=edit&tid=' . (int) $sets[$mybb->get_input('sid')]);
+            header('Location: index.php?module=style-themes&action=edit&tid=' . (int)$sets[$mybb->get_input('sid')]);
             exit;
         }
-
     }
 
-    $tid = (int) $theme['tid'];
+    $tid = (int)$theme['tid'];
     $theme['properties'] = my_unserialize($theme['properties']);
 
     $lang->load('style_templates');
     $lang->load('fastyle');
 
     if ($theme['properties']['templateset']) {
-        $sid = (int) $theme['properties']['templateset'];
-    }
-    elseif ($mybb->get_input('sid', \MyBB::INPUT_INT)) {
-        $sid = (int) $mybb->get_input('sid', \MyBB::INPUT_INT);
+        $sid = (int)$theme['properties']['templateset'];
+    } elseif ($mybb->get_input('sid', MyBB::INPUT_INT)) {
+        $sid = (int)$mybb->get_input('sid', MyBB::INPUT_INT);
     }
 
     // Get a list of templates
-    $query = $db->simple_select("templategroups", "*");
+    $query = $db->simple_select('templategroups', '*');
 
     $template_groups = [];
     while ($templategroup = $db->fetch_array($query)) {
-
-        $templategroup['title'] = $lang->sprintf($lang->templates, htmlspecialchars_uni($lang->parse($templategroup['title'])));
+        $templategroup['title'] = $lang->sprintf(
+            $lang->templates,
+            htmlspecialchars_uni($lang->parse($templategroup['title']))
+        );
 
         $template_groups[$templategroup['prefix']] = $templategroup;
-
     }
 
-    function sort_template_groups($a, $b) {
+    function sort_template_groups($a, $b)
+    {
         return strcasecmp($a['title'], $b['title']);
     }
-    uasort($template_groups, "sort_template_groups");
+
+    uasort($template_groups, 'sort_template_groups');
 
     // Add the ungrouped templates group at the bottom
     $template_groups['-1'] = [
-        "prefix" => "",
-        "title" => $lang->ungrouped_templates,
-        "gid" => -1
+        'prefix' => '',
+        'title' => $lang->ungrouped_templates,
+        'gid' => -1
     ];
 
     // Set the template group keys to lowercase for case insensitive comparison.
@@ -323,18 +317,21 @@ function fastyle_themes_hijack_function()
     $where = ($sid == -1) ? "sid='{$sid}'" : "sid='{$sid}' OR sid = '-2'";
 
     // Load the list of templates
-    $query = $db->simple_select("templates", "title,sid,tid,template", $where, ['order_by' => 'sid DESC, title', 'order_dir' => 'ASC']);
+    $query = $db->simple_select(
+        'templates',
+        'title,sid,tid,template',
+        $where,
+        ['order_by' => 'sid DESC, title', 'order_dir' => 'ASC']
+    );
     while ($template = $db->fetch_array($query)) {
-
-        $exploded = explode("_", $template['title'], 2);
+        $exploded = explode('_', $template['title'], 2);
 
         // Set the prefix to lowercase for case insensitive comparison.
         $exploded[0] = strtolower($exploded[0]);
 
         if (isset($template_groups[$exploded[0]])) {
             $group = $exploded[0];
-        }
-        else {
+        } else {
             $group = -1;
         }
 
@@ -345,79 +342,64 @@ function fastyle_themes_hijack_function()
 
         // If this template is not a master template, we simply add it to the list
         if ($template['sid'] != -2) {
-
             $template['original'] = false;
             $template['modified'] = false;
             $template_groups[$group]['templates'][$template['title']] = $template;
-
-        }
-        // Otherwise, if we are down to master templates we need to do a few extra things
+        } // Otherwise, if we are down to master templates we need to do a few extra things
         else {
-			$template_groups[$group]['templates'][$template['title']]['template'] = $template_groups[$group]['templates'][$template['title']]['template'] ?? '';
+            $template_groups[$group]['templates'][$template['title']]['template'] = $template_groups[$group]['templates'][$template['title']]['template'] ?? '';
 
-			$template['template'] = $template['template'] ?? '';
+            $template['template'] = $template['template'] ?? '';
 
-			$template_groups[$group]['templates'][$template['title']]['sid'] = $template_groups[$group]['templates'][$template['title']]['sid'] ?? 0;
+            $template_groups[$group]['templates'][$template['title']]['sid'] = $template_groups[$group]['templates'][$template['title']]['sid'] ?? 0;
 
             // Master template
             if (!isset($template_groups[$group]['templates'][$template['title']])) {
-
                 $template['original'] = true;
                 $template_groups[$group]['templates'][$template['title']] = $template;
-
-            }
-            // Template that hasn't been customised in the set we have expanded
+            } // Template that hasn't been customised in the set we have expanded
             elseif ($template_groups[$group]['templates'][$template['title']]['template'] == $template['template']) {
                 $template_groups[$group]['templates'][$template['title']]['original'] = true;
-            }
-            // Template has been modified in the set we have expanded (it doesn't match the master)
+            } // Template has been modified in the set we have expanded (it doesn't match the master)
             elseif ($template_groups[$group]['templates'][$template['title']]['template'] != $template['template'] && $template_groups[$group]['templates'][$template['title']]['sid'] != -2) {
                 $template_groups[$group]['templates'][$template['title']]['modified'] = true;
             }
 
             // Save some memory!
             unset($template_groups[$group]['templates'][$template['title']]['template']);
-
         }
-
     }
 
     $resourcelist = '<ul>';
 
     // Stylesheets
     if ($tid) {
-
         $file_stylesheets = my_unserialize($theme['stylesheets']);
 
         $stylesheets = [];
         $inherited_load = [];
 
         foreach ($file_stylesheets as $file => $action_stylesheet) {
-
             if ($file == 'inherited' or !is_array($action_stylesheet)) {
                 continue;
             }
 
             foreach ($action_stylesheet as $action => $style) {
-
                 foreach ($style as $stylesheet) {
-
                     $stylesheets[$stylesheet]['applied_to'][$file][] = $action;
 
-                    if (is_array($file_stylesheets['inherited'][$file."_".$action]) and in_array($stylesheet, array_keys($file_stylesheets['inherited'][$file."_".$action]))) {
+                    if (is_array($file_stylesheets['inherited'][$file . '_' . $action]) and in_array(
+                            $stylesheet,
+                            array_keys($file_stylesheets['inherited'][$file . '_' . $action])
+                        )) {
+                        $stylesheets[$stylesheet]['inherited'] = $file_stylesheets['inherited'][$file . '_' . $action];
 
-                        $stylesheets[$stylesheet]['inherited'] = $file_stylesheets['inherited'][$file."_".$action];
-
-                        foreach ($file_stylesheets['inherited'][$file."_".$action] as $value) {
+                        foreach ($file_stylesheets['inherited'][$file . '_' . $action] as $value) {
                             $inherited_load[] = $value;
                         }
-
                     }
-
                 }
-
             }
-
         }
 
         $inherited_load[] = $tid;
@@ -427,38 +409,38 @@ function fastyle_themes_hijack_function()
         $theme_stylesheets = [];
 
         if (count($inherited_load) > 0) {
-
-            $query = $db->simple_select("themes", "tid, name", "tid IN (".implode(",", $inherited_load).")");
+            $query = $db->simple_select('themes', 'tid, name', 'tid IN (' . implode(',', $inherited_load) . ')');
 
             while ($inherited_theme = $db->fetch_array($query)) {
                 $inherited_themes[$inherited_theme['tid']] = $inherited_theme['name'];
             }
 
-            $query = $db->simple_select("themestylesheets", "*", "", ['order_by' => 'sid DESC, tid', 'order_dir' => 'desc']);
+            $query = $db->simple_select(
+                'themestylesheets',
+                '*',
+                '',
+                ['order_by' => 'sid DESC, tid', 'order_dir' => 'desc']
+            );
             while ($theme_stylesheet = $db->fetch_array($query)) {
-
-                if (!isset($theme_stylesheets[$theme_stylesheet['name']]) && in_array($theme_stylesheet['tid'], $inherited_load)) {
+                if (!isset($theme_stylesheets[$theme_stylesheet['name']]) && in_array(
+                        $theme_stylesheet['tid'],
+                        $inherited_load
+                    )) {
                     $theme_stylesheets[$theme_stylesheet['name']] = $theme_stylesheet;
                 }
 
                 $theme_stylesheets[$theme_stylesheet['sid']] = $theme_stylesheet['name'];
-
             }
-
         }
 
         // Order stylesheets
         $ordered_stylesheets = [];
 
         foreach ($theme['properties']['disporder'] as $style_name => $order) {
-
             foreach ($stylesheets as $filename => $style) {
-
                 if (strpos($filename, 'css.php?stylesheet=') !== false) {
-
-                    $style['sid'] = (int) str_replace('css.php?stylesheet=', '', $filename);
+                    $style['sid'] = (int)str_replace('css.php?stylesheet=', '', $filename);
                     $filename = $theme_stylesheets[$style['sid']];
-
                 }
 
                 if (basename($filename) != $style_name) {
@@ -466,88 +448,71 @@ function fastyle_themes_hijack_function()
                 }
 
                 $ordered_stylesheets[$filename] = $style;
-
             }
-
         }
 
         $resourcelist .= '<li class="header icon">Stylesheets</li>';
         $resourcelist .= '<ul data-prefix="stylesheets">';
 
         foreach ($ordered_stylesheets as $filename => $style) {
-
             $modified = '';
 
             if (strpos($filename, 'css.php?stylesheet=') !== false) {
-
-                $style['sid'] = (int) str_replace('css.php?stylesheet=', '', $filename);
+                $style['sid'] = (int)str_replace('css.php?stylesheet=', '', $filename);
                 $filename = $theme_stylesheets[$style['sid']];
-
-            }
-            else {
-
+            } else {
                 $filename = basename($filename);
                 $style['sid'] = $theme_stylesheets[$filename]['sid'];
-
             }
 
             $filename = htmlspecialchars_uni($theme_stylesheets[$filename]['name']);
 
-            $inherited = "";
+            $inherited = '';
             $inherited_ary = [];
 
             if (is_array($style['inherited'])) {
-
                 foreach ($style['inherited'] as $_tid) {
-
                     if ($inherited_themes[$_tid]) {
                         $inherited_ary[$_tid] = $inherited_themes[$_tid];
                     }
-
                 }
-
             }
 
             if (!empty($inherited_ary)) {
-
                 $inherited = " <i class='fas fa-exclamation-triangle' title='{$lang->inherited_from}";
-                $sep = " ";
+                $sep = ' ';
                 $inherited_count = count($inherited_ary);
                 $count = 0;
 
                 foreach ($inherited_ary as $_tid => $file) {
-
                     if (isset($applied_to_count) && $count == $applied_to_count && $count != 0) {
                         $sep = " {$lang->and} ";
                     }
 
-                    $inherited .= $sep.$file;
+                    $inherited .= $sep . $file;
                     $sep = $lang->comma;
 
                     ++$count;
-
                 }
 
                 $inherited .= "'></i>";
-
-            }
-            else {
+            } else {
                 $modified = ' data-status="modified"';
             }
 
-            if (is_array($style['applied_to']) && (!isset($style['applied_to']['global']) || $style['applied_to']['global'][0] != "global")) {
-
+            if (is_array(
+                    $style['applied_to']
+                ) && (!isset($style['applied_to']['global']) || $style['applied_to']['global'][0] != 'global')) {
                 $attached_to = '';
 
                 $applied_to_count = count($style['applied_to']);
                 $count = 0;
-                $sep = " ";
-                $name = "";
+                $sep = ' ';
+                $name = '';
 
                 $colors = [];
 
-                if(!isset($properties))
-                {
+                if (!isset($properties)) {
                     $properties = [];
                 }
 
@@ -556,7 +521,6 @@ function fastyle_themes_hijack_function()
                 }
 
                 foreach ($style['applied_to'] as $name => $actions) {
-
                     if (!$name) {
                         continue;
                     }
@@ -573,17 +537,16 @@ function fastyle_themes_hijack_function()
                     // It's a file:
                     ++$count;
 
-                    if ($actions[0] != "global") {
-                        $name = "{$name} ({$lang->actions}: ".implode(',', $actions).")";
+                    if ($actions[0] != 'global') {
+                        $name = "{$name} ({$lang->actions}: " . implode(',', $actions) . ')';
                     }
 
                     if ($count == $applied_to_count && $count > 1) {
                         $sep = " {$lang->and} ";
                     }
-                    $attached_to .= $sep.$name;
+                    $attached_to .= $sep . $name;
 
                     $sep = $lang->comma;
-
                 }
 
                 if ($attached_to) {
@@ -591,73 +554,60 @@ function fastyle_themes_hijack_function()
                 }
 
                 if (count($colors)) {
-
                     // Attached to color instead of files.
                     $count = 1;
                     $color_list = $sep = '';
 
                     foreach ($colors as $color) {
-
                         if ($count == count($colors) && $count > 1) {
                             $sep = " {$lang->and} ";
                         }
 
-                        $color_list .= $sep.trim($color);
+                        $color_list .= $sep . trim($color);
                         ++$count;
 
                         $sep = ', ';
-
                     }
 
                     $attached_to = $lang->attached_to . $lang->sprintf($lang->colors_attached_to) . ' ' . $color_list;
-
                 }
 
                 // Orphaned! :(
                 if ($attached_to == '') {
                     $attached_to = $lang->attached_to_nothing;
                 }
-
-            }
-            else {
+            } else {
                 $attached_to = $lang->attached_to_all_pages;
             }
 
             $resourcelist .= "<li data-title='{$filename}'{$modified} data-attachedto='{$attached_to}' data-id='{$style['sid']}'><i class='fab fa-css3-alt'></i> {$inherited}{$filename}</li>";
-
         }
 
         $resourcelist .= '</ul>';
-
     }
 
     // Templates
     $resourcelist .= "<li class='header icon'>Templates</li>";
-    $resourcelist .= "<ul>";
+    $resourcelist .= '<ul>';
 
     // Global templates
     if ($sid == -1 and !empty($template_groups[-1]['templates'])) {
-
         foreach ($template_groups[-1]['templates'] as $template) {
             $resourcelist .= "<li data-tid='{$template['tid']}' data-title='{$template['title']}' data-status='original'><i class='fas fa-file-code'></i> {$template['title']}</li>";
         }
-
-    }
-    // Regular set
+    } // Regular set
     else {
-
         foreach ($template_groups as $prefix => $group) {
-
             $title = str_replace(' Templates', '', $group['title']);
 
             // We can delete this group
-            $deletegroup = /* (isset($group['isdefault']) && !$group['isdefault']) ? '<i class="delete icon-cancel"></i>' :  */'';
+            $deletegroup = /* (isset($group['isdefault']) && !$group['isdefault']) ? '<i class="delete icon-cancel"></i>' :  */
+                '';
 
             $resourcelist .= "<li class='header icon' data-gid='{$group['gid']}'><i class='fas fa-folder'></i> {$title}{$deletegroup}</li>";
 
             // Templates for this group exist
             if (isset($group['templates']) and count($group['templates']) > 0) {
-
                 $templates = $group['templates'];
                 ksort($templates);
 
@@ -667,7 +617,6 @@ function fastyle_themes_hijack_function()
                 $lastFragments = $templatesTree = [];
 
                 foreach ($templates as $template) {
-
                     $originalOrModified = '';
 
                     // Strip out the prefix first
@@ -684,11 +633,9 @@ function fastyle_themes_hijack_function()
 
                     if (!empty($templatesTree[$md5])) {
                         $tier = $templatesTree[$md5];
-                    }
-                    elseif ($intersect == $lastFragments or $count > $lastTier) {
+                    } elseif ($intersect == $lastFragments or $count > $lastTier) {
                         $tier = $lastTier + 1;
-                    }
-                    elseif ($count > 0 and $count == $lastTier) {
+                    } elseif ($count > 0 and $count == $lastTier) {
                         $tier = $lastTier;
                     }
 
@@ -707,31 +654,25 @@ function fastyle_themes_hijack_function()
 
                     if (isset($template['modified']) && $template['modified'] == true) {
                         $originalOrModified = ' data-status="modified"';
-                    }
-                    elseif (isset($template['original']) && $template['original'] == false) {
+                    } elseif (isset($template['original']) && $template['original'] == false) {
                         $originalOrModified = ' data-status="original"';
                     }
 
-					$template['tid'] = $template['tid'] ?? 0;
+                    $template['tid'] = $template['tid'] ?? 0;
 
-					$template['title'] = $template['title'] ?? '';
+                    $template['title'] = $template['title'] ?? '';
 
                     $resourcelist .= "<li class='tier-{$tier}' data-tid='{$template['tid']}' data-title='{$template['title']}'{$originalOrModified}><i class='far fa-sticky-note'></i> {$displayTitle}</li>";
-
                 }
 
                 $resourcelist .= '</ul>';
-
-            }
-            // No templates in this group
+            } // No templates in this group
             else {
                 $resourcelist .= "<ul data-type='templates' data-prefix='{$prefix}'><li>{$lang->fastyle_no_templates_available}</li></ul>";
             }
 
             $resourcelist .= '</li>';
-
         }
-
     }
 
     $resourcelist .= '</ul>';
@@ -771,20 +712,22 @@ function fastyle_themes_hijack_function()
         'usercp.js'
     ];
 
-    function build_scripts_list($folder = '') {
-
+    function build_scripts_list($folder = '')
+    {
         global $originalList, $resourcelist, $folders;
 
         if (is_readable($folder)) {
-
             $files = scandir($folder);
 
             // . and ..
             unset($files[0], $files[1]);
 
             foreach ($files as $key => $file) {
-
-                $relative = str_replace(MYBB_ROOT . 'jscripts' . DIRECTORY_SEPARATOR, '', realpath($folder . DIRECTORY_SEPARATOR . $file));
+                $relative = str_replace(
+                    MYBB_ROOT . 'jscripts' . DIRECTORY_SEPARATOR,
+                    '',
+                    realpath($folder . DIRECTORY_SEPARATOR . $file)
+                );
 
                 // Determine this file status
                 $status = (in_array($relative, $originalList)) ? 'modified' : 'original';
@@ -792,60 +735,48 @@ function fastyle_themes_hijack_function()
                 // File or folder? Folders are grouped on top of a group
                 $path = $folder . DIRECTORY_SEPARATOR . $file;
                 if (is_dir($path)) {
-
                     $folders[] = "<li class='header icon'><i class='fas fa-folder'></i> {$file}</li>";
-                    $folders[] = "<ul>";
+                    $folders[] = '<ul>';
 
                     build_scripts_list($path);
 
-                    $folders[] = "</ul>";
-
-                }
-                elseif (get_extension($file) == 'js') {
+                    $folders[] = '</ul>';
+                } elseif (get_extension($file) == 'js') {
                     $_files[] = "<li data-title='{$relative}' data-status='{$status}'><i class='fab fa-node-js'></i> {$file}</li>";
                 }
-
             }
 
             if (!empty($folders)) {
-
-                foreach ((array) $folders as $folder) {
+                foreach ((array)$folders as $folder) {
                     $resourcelist .= $folder;
                 }
-
             }
 
             // If this directory is not empty, add its files and subdirs
             if (!empty($_files)) {
-
-                foreach ((array) $_files as $file) {
+                foreach ((array)$_files as $file) {
                     $resourcelist .= $file;
                 }
-
             }
 
             $folders = $_files = [];
-
         }
-
     }
 
     if (is_dir($folder)) {
         build_scripts_list($folder);
     }
 
-    $resourcelist .= "</ul>";
+    $resourcelist .= '</ul>';
 
     if ($mybb->get_input('sid')) {
-
         global $sub_tabs;
 
-    	$page->output_header($lang->template_sets);
-    	$page->output_nav_tabs($sub_tabs, 'manage_templates');
-
+        $page->output_header($lang->template_sets);
+        $page->output_nav_tabs($sub_tabs, 'manage_templates');
     }
 
-    $form = new Form("index.php", "post", "fastyle_editor");
+    $form = new Form('index.php', 'post', 'fastyle_editor');
 
     $textarea = $form->generate_text_area('editor', '', ['id' => 'editor', 'style' => 'width: 100%; height: 520px']);
     echo <<<HTML
@@ -895,129 +826,115 @@ function fastyle_themes_hijack_function()
 HTML;
 
     echo fastyle_load_javascript($sid, $tid);
-    echo "<br>";
+    echo '<br>';
 
     if ($mybb->get_input('sid')) {
         $page->output_footer();
         exit;
     }
-
 }
 
 function fastyle_templates_edit()
 {
-	global $page, $mybb, $db, $sid, $lang;
+    global $page, $mybb, $db, $sid, $lang;
 
-	if ($mybb->get_input('ajax')) {
-
+    if ($mybb->get_input('ajax')) {
         $errors = [];
 
-		if (empty($mybb->get_input('title'))) {
-			$errors[] = $lang->error_missing_title;
-		}
+        if (empty($mybb->get_input('title'))) {
+            $errors[] = $lang->error_missing_title;
+        }
 
-		if (check_template($mybb->get_input('template'))) {
-			$errors[] = $lang->error_security_problem;
-		}
+        if (check_template($mybb->get_input('template'))) {
+            $errors[] = $lang->error_security_problem;
+        }
 
-		if ($errors) {
-			fastyle_message(implode("\n", $errors), 'error');
-		}
-
-	}
-
+        if ($errors) {
+            fastyle_message(implode("\n", $errors), 'error');
+        }
+    }
 }
 
 function fastyle_templates_edit_commit()
 {
-	global $template, $mybb, $set, $lang;
+    global $template, $mybb, $set, $lang;
 
-	if ($mybb->get_input('ajax')) {
-
-		$lang->load('fastyle');
+    if ($mybb->get_input('ajax')) {
+        $lang->load('fastyle');
 
         $tid = isset($template['tid']) ? (int)$template['tid'] : 0;
 
         $title = isset($set['title']) ? $set['title'] : '';
 
-		log_admin_action($tid, $mybb->get_input('title'), $mybb->get_input('sid'),  $title);
+        log_admin_action($tid, $mybb->get_input('title'), $mybb->get_input('sid'), $title);
 
-		$data = [
-			'message' => $lang->sprintf($lang->fastyle_success_saved, $mybb->get_input('title'))
-		];
+        $data = [
+            'message' => $lang->sprintf($lang->fastyle_success_saved, $mybb->get_input('title'))
+        ];
 
-		// Check if the tid coming from the browser matches the one returned from the db. If it doesn't = new template,
-		// pass the tid to the client which will update its own tid
-		if ($tid != $mybb->get_input('tid')) {
-			$data['tid'] = $tid;
-		}
+        // Check if the tid coming from the browser matches the one returned from the db. If it doesn't = new template,
+        // pass the tid to the client which will update its own tid
+        if ($tid != $mybb->get_input('tid')) {
+            $data['tid'] = $tid;
+        }
 
-		fastyle_message($data);
-
-	}
-
+        fastyle_message($data);
+    }
 }
 
 function fastyle_themes_edit_advanced_commit()
 {
-	global $mybb, $theme, $lang, $stylesheet;
+    global $mybb, $theme, $lang, $stylesheet;
 
-	if ($mybb->request_method == "post" and $mybb->get_input('ajax')) {
+    if ($mybb->request_method == 'post' and $mybb->get_input('ajax')) {
+        log_admin_action(htmlspecialchars_uni($theme['name']), $stylesheet['name']);
 
-		log_admin_action(htmlspecialchars_uni($theme['name']), $stylesheet['name']);
-
-		fastyle_message($lang->sprintf($lang->fastyle_success_saved, $stylesheet['name']));
-
-	}
+        fastyle_message($lang->sprintf($lang->fastyle_success_saved, $stylesheet['name']));
+    }
 }
 
 function fastyle_admin_config_settings_change()
 {
-	global $page;
+    global $page;
 
-	$page->extra_header .= fastyle_load_javascript();
+    $page->extra_header .= fastyle_load_javascript();
 }
 
 function fastyle_admin_config_settings_change_commit()
 {
-	global $mybb, $errors, $cache, $lang;
+    global $mybb, $errors, $cache, $lang;
 
-	if ($mybb->request_method == "post" and $mybb->get_input('ajax')) {
+    if ($mybb->request_method == 'post' and $mybb->get_input('ajax')) {
+        if (!$errors) {
+            // Log admin action
+            log_admin_action();
 
-		if (!$errors) {
-
-			// Log admin action
-			log_admin_action();
-
-			fastyle_message($lang->success_settings_updated);
-
-		}
-		else {
-			fastyle_message($errors);
-		}
-
-	}
+            fastyle_message($lang->success_settings_updated);
+        } else {
+            fastyle_message($errors);
+        }
+    }
 }
 
 function fastyle_load_javascript($sid = 0, $tid = 0)
 {
-	static $loaded;
+    static $loaded;
 
-	$sid = (int) $sid;
-	$tid = (int) $tid;
+    $sid = (int)$sid;
+    $tid = (int)$tid;
 
-	$html = '';
+    $html = '';
 
-	if ($loaded != true) {
-		$html .= <<<HTML
+    if ($loaded != true) {
+        $html .= <<<HTML
 <script type="text/javascript" src="jscripts/FASTyle/spin/spin.js?v=2.3"></script>
 <script type="text/javascript" src="jscripts/FASTyle/main.js?v=2.3"></script>
 HTML;
-	}
+    }
 
-	$loaded = true;
+    $loaded = true;
 
-	$html .= <<<HTML
+    $html .= <<<HTML
 <script type="text/javascript">
 
     $(document).ready(function() {
@@ -1027,31 +944,30 @@ HTML;
 </script>
 HTML;
 
-	return $html;
-
+    return $html;
 }
 
 function fastyle_message($data, $type = 'success')
 {
-	if (!is_array($data)) {
-		$data = ['message' => $data];
-	}
+    if (!is_array($data)) {
+        $data = ['message' => $data];
+    }
 
-	if ($type == 'error') {
-		$data['error'] = 1;
-	}
+    if ($type == 'error') {
+        $data['error'] = 1;
+    }
 
-	echo json_encode($data);
+    echo json_encode($data);
 
-	exit;
+    exit;
 }
 
 function fastyle_admin_style_action_handler($actions)
 {
-	$actions['fastyle'] = array(
-		"active" => "fastyle",
-		"file" => "fastyle.php"
-	);
+    $actions['fastyle'] = array(
+        'active' => 'fastyle',
+        'file' => 'fastyle.php'
+    );
 
-	return $actions;
+    return $actions;
 }

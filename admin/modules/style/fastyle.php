@@ -1,16 +1,16 @@
 <?php
 
-if (!defined("IN_MYBB")) {
-    die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
+if (!defined('IN_MYBB')) {
+    die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
 }
 
-require_once MYBB_ADMIN_DIR."inc/functions_themes.php";
+require_once MYBB_ADMIN_DIR . 'inc/functions_themes.php';
 
 $lang->load('style_themes');
 $lang->load('style_templates');
 $lang->load('fastyle');
 
-$page->add_breadcrumb_item($lang->fastyle, "index.php?module=style-fastyle");
+$page->add_breadcrumb_item($lang->fastyle, 'index.php?module=style-fastyle');
 
 $tid = $mybb->get_input('tid', MyBB::INPUT_INT);
 
@@ -21,20 +21,18 @@ $templateSets[-1]['sid'] = -1;
 $themes = cache_themes();
 
 // Get template sets
-$query = $db->simple_select("templatesets", "*", "", ['order_by' => 'title', 'order_dir' => 'ASC']);
+$query = $db->simple_select('templatesets', '*', '', ['order_by' => 'title', 'order_dir' => 'ASC']);
 while ($template_set = $db->fetch_array($query)) {
     $templateSets[$template_set['sid']] = $template_set;
 }
 
 // Restrucure the theme array to something we can "loop-de-loop" with
 foreach ($themes as $key => $theme) {
-
-    if ($key == "default") {
+    if ($key == 'default') {
         continue;
     }
 
     $theme_cache[$theme['pid']][$theme['tid']] = $theme;
-
 }
 
 $theme_cache['num_themes'] = count($themes);
@@ -42,45 +40,40 @@ unset($themes);
 
 $theme = $theme_cache[$tid];
 
-$sid = (int) $mybb->input['sid'];
+$sid = (int)$mybb->input['sid'];
 
 // API endpoint
 if (isset($mybb->input['api'])) {
-
     $title = $db->escape_string($mybb->get_input('title'));
 
     switch (get_extension($mybb->get_input('title'))) {
-
         case 'js':
-        $mode = 'javascripts';
-        break;
+            $mode = 'javascripts';
+            break;
 
         case 'css':
-        $mode = 'stylesheets';
-        break;
+            $mode = 'stylesheets';
+            break;
 
         default:
-        $mode = 'templates';
-
+            $mode = 'templates';
     }
 
     // Get asset
     if ($mybb->input['action'] == 'get') {
-
         if ($mode == 'templates') {
-
-            $query = $db->simple_select('templates', 'template, tid, dateline',
-            'title = \'' . $title . '\' AND (sid = -2 OR sid = ' . $sid . ')',
-            ['order_by' => 'sid', 'order_dir' => 'desc', 'limit' => 1]);
+            $query = $db->simple_select(
+                'templates',
+                'template, tid, dateline',
+                'title = \'' . $title . '\' AND (sid = -2 OR sid = ' . $sid . ')',
+                ['order_by' => 'sid', 'order_dir' => 'desc', 'limit' => 1]
+            );
             $template = $db->fetch_array($query);
 
             $content = $template['template'];
             $id = $template['tid'];
             $dateline = $template['dateline'];
-
-        }
-        elseif ($mode == 'javascripts') {
-
+        } elseif ($mode == 'javascripts') {
             $path = MYBB_ROOT . 'jscripts/' . $mybb->get_input('title');
 
             if (!is_readable($path)) {
@@ -90,50 +83,45 @@ if (isset($mybb->input['api'])) {
             $content = file_get_contents($path);
             $id = true;
             $dateline = filemtime($path);
-
-        }
-        else {
-
+        } else {
             $parent_list = make_parent_theme_list($theme['tid']);
             $parent_list = implode(',', $parent_list);
             if (!$parent_list) {
                 $parent_list = 1;
             }
 
-            $query = $db->simple_select("themestylesheets", "*",
-            "name='" . $title . "' AND tid IN ({$parent_list})",
-            ['order_by' => 'tid', 'order_dir' => 'desc', 'limit' => 1]);
+            $query = $db->simple_select(
+                'themestylesheets',
+                '*',
+                "name='" . $title . "' AND tid IN ({$parent_list})",
+                ['order_by' => 'tid', 'order_dir' => 'desc', 'limit' => 1]
+            );
             $stylesheet = $db->fetch_array($query);
 
             $content = $stylesheet['stylesheet'];
             $id = $stylesheet['sid'];
             $dateline = $stylesheet['lastmodified'];
-
         }
 
         if ($id) {
-
             $data = ($dateline) ? ['content' => $content, 'dateline' => $dateline] : ['content' => $content];
             fastyle_message($data);
-
-        }
-        else {
+        } else {
             fastyle_message($lang->fastyle_error_resource_not_found, 'error');
         }
-
     }
 
     // Revert asset
     if ($mybb->input['action'] == 'revert') {
-
         if ($mode == 'templates') {
-
-            $query = $db->query("
+            $query = $db->query(
+                '
             SELECT t.*, s.title as set_title
-            FROM " . TABLE_PREFIX . "templates t
-            LEFT JOIN " . TABLE_PREFIX . "templatesets s ON(s.sid=t.sid)
+            FROM ' . TABLE_PREFIX . 'templates t
+            LEFT JOIN ' . TABLE_PREFIX . "templatesets s ON(s.sid=t.sid)
             WHERE t.title='" . $title . "' AND t.sid > 0 AND t.sid = '" . $sid . "'
-            ");
+            "
+            );
             $template = $db->fetch_array($query);
 
             // Does the template not exist?
@@ -142,7 +130,7 @@ if (isset($mybb->input['api'])) {
             }
 
             // Revert the template
-            $db->delete_query("templates", "tid='{$template['tid']}'");
+            $db->delete_query('templates', "tid='{$template['tid']}'");
 
             // Log admin action
             log_admin_action($template['tid'], $template['title'], $template['sid'], $template['set_title']);
@@ -151,48 +139,46 @@ if (isset($mybb->input['api'])) {
             $query = $db->simple_select('templates', 'tid,template', "title = '" . $title . "' AND sid = -2");
             $template = $db->fetch_array($query);
 
-            fastyle_message(['message' => $lang->success_template_reverted, 'tid' => $template['tid'], 'content' => $template['template']]);
-
-        }
-        elseif ($mode == 'javascripts') {
-
-            $mybb->input['content'] = \fetch_remote_file('https://github.com/mybb/mybb/raw/' . urlencode('mybb_' . $mybb->version_code) . DIRECTORY_SEPARATOR . urlencode('jscripts/' . $mybb->get_input('title')));
+            fastyle_message(
+                [
+                    'message' => $lang->success_template_reverted,
+                    'tid' => $template['tid'],
+                    'content' => $template['template']
+                ]
+            );
+        } elseif ($mode == 'javascripts') {
+            $mybb->input['content'] = fetch_remote_file(
+                'https://github.com/mybb/mybb/raw/' . urlencode(
+                    'mybb_' . $mybb->version_code
+                ) . DIRECTORY_SEPARATOR . urlencode('jscripts/' . $mybb->get_input('title'))
+            );
 
             if ($mybb->input['content'] != 'Not Found') {
-
                 $mybb->input['action'] = 'edit_javascript';
                 $revert = 1;
-
-            }
-            else {
+            } else {
                 fastyle_message($lang->fastyle_error_resource_not_found);
             }
-
         }
-
     }
 
     // Edit script
     if ($mybb->get_input('action') == 'edit_javascript' && $mode == 'javascripts') {
-
         $content = $mybb->get_input('content');
 
         // Remove special characters
         $title = preg_replace('#([^a-zA-Z0-9-_\.\/]+)#i', '', $mybb->get_input('title'));
-        if (!$title or $title == ".css") {
+        if (!$title or $title == '.css') {
             fastyle_message($lang->fastyle_error_characters_not_allowed, 'error');
         }
 
         $folder = MYBB_ROOT . 'jscripts';
 
         if (is_writable($folder)) {
-
             if (file_put_contents($folder . DIRECTORY_SEPARATOR . $title, $content) === false) {
                 fastyle_message($lang->fastyle_error_could_not_write_to_file, 'error');
             }
-
-        }
-        else {
+        } else {
             fastyle_message($lang->fastyle_error_folder_not_writable, 'error');
         }
 
@@ -205,14 +191,11 @@ if (isset($mybb->input['api'])) {
         }
 
         fastyle_message($data);
-
     }
 
     // Delete asset
     if ($mybb->input['action'] == 'delete') {
-
         if ($mode == 'stylesheets') {
-
             if (!$theme['tid']) {
                 fastyle_message($lang->error_invalid_theme, 'error');
             }
@@ -223,7 +206,12 @@ if (isset($mybb->input['api'])) {
                 $parent_list = 1;
             }
 
-            $query = $db->simple_select("themestylesheets", "*", "name='" . $title . "' AND tid IN ({$parent_list})", ['order_by' => 'tid', 'order_dir' => 'desc', 'limit' => 1]);
+            $query = $db->simple_select(
+                'themestylesheets',
+                '*',
+                "name='" . $title . "' AND tid IN ({$parent_list})",
+                ['order_by' => 'tid', 'order_dir' => 'desc', 'limit' => 1]
+            );
             $stylesheet = $db->fetch_array($query);
 
             // Does the theme not exist? or are we trying to delete the master?
@@ -231,27 +219,28 @@ if (isset($mybb->input['api'])) {
                 fastyle_message($lang->error_invalid_stylesheet, 'error');
             }
 
-            $db->delete_query("themestylesheets", "sid='{$stylesheet['sid']}'", 1);
-            @unlink(MYBB_ROOT."cache/themes/theme{$theme['tid']}/{$stylesheet['cachefile']}");
+            $db->delete_query('themestylesheets', "sid='{$stylesheet['sid']}'", 1);
+            @unlink(MYBB_ROOT . "cache/themes/theme{$theme['tid']}/{$stylesheet['cachefile']}");
 
             $filename_min = str_replace('.css', '.min.css', $stylesheet['cachefile']);
-            @unlink(MYBB_ROOT."cache/themes/theme{$theme['tid']}/{$filename_min}");
+            @unlink(MYBB_ROOT . "cache/themes/theme{$theme['tid']}/{$filename_min}");
 
             // Update the CSS file list for this theme
             update_theme_stylesheet_list($theme['tid'], $theme, true);
 
             // Log admin action
-            log_admin_action($stylesheet['sid'], $stylesheet['name'], $theme['tid'], htmlspecialchars_uni($theme['name']));
+            log_admin_action(
+                $stylesheet['sid'],
+                $stylesheet['name'],
+                $theme['tid'],
+                htmlspecialchars_uni($theme['name'])
+            );
 
             fastyle_message($lang->success_stylesheet_deleted);
-
-        }
-        elseif ($mode == 'javascripts') {
-
+        } elseif ($mode == 'javascripts') {
             $folder = MYBB_ROOT . 'jscripts';
 
             if (is_writable($folder)) {
-
                 $filename = $folder . DIRECTORY_SEPARATOR . $mybb->get_input('title');
                 $path = dirname($filename);
 
@@ -259,28 +248,25 @@ if (isset($mybb->input['api'])) {
 
                 // Remove the parent directory if it turns out to be empty
                 if (is_readable($path)) {
-
                     if (count(scandir($path)) == 2) {
                         @rmdir($path);
                     }
-
                 }
-
-            }
-            else {
+            } else {
                 fastyle_message($lang->fastyle_error_dir_not_writable, 'error');
             }
 
             fastyle_message($lang->sprintf($lang->fastyle_success_deleted, $mybb->get_input('title')));
-
         }
 
-        $query = $db->query("
+        $query = $db->query(
+            '
         SELECT t.*, s.title as set_title
-        FROM " . TABLE_PREFIX . "templates t
-        LEFT JOIN " . TABLE_PREFIX . "templatesets s ON(t.sid=s.sid)
+        FROM ' . TABLE_PREFIX . 'templates t
+        LEFT JOIN ' . TABLE_PREFIX . "templatesets s ON(t.sid=s.sid)
         WHERE t.title='" . $title . "' AND t.sid > '-2' AND t.sid = '{$sid}'
-        ");
+        "
+        );
         $template = $db->fetch_array($query);
 
         // Does the template not exist?
@@ -289,13 +275,12 @@ if (isset($mybb->input['api'])) {
         }
 
         // Delete the template
-        $db->delete_query("templates", "tid='{$template['tid']}'");
+        $db->delete_query('templates', "tid='{$template['tid']}'");
 
         // Log admin action
         log_admin_action($template['tid'], $template['title'], $template['sid'], $template['set_title']);
 
         fastyle_message($lang->sprintf($lang->fastyle_success_deleted, $mybb->get_input('title')));
-
     }
 
     // Delete template group
@@ -324,21 +309,18 @@ fastyle_message($lang->success_template_group_deleted);
 
     // Diff mode
     if ($mybb->input['action'] == 'diff') {
-
         if ($mode == 'templates') {
-
-            $query = $db->simple_select("templates", "template", "title='".$title."' AND sid='-2'");
+            $query = $db->simple_select('templates', 'template', "title='" . $title . "' AND sid='-2'");
             $content = $db->fetch_field($query, 'template');
-
-        }
-        elseif ($mode == 'javascripts') {
-            $content = \fetch_remote_file('https://github.com/mybb/mybb/raw/' . urlencode('mybb_' . $mybb->version_code) . DIRECTORY_SEPARATOR . urlencode('jscripts/' . $mybb->get_input('title')));
-        }
-        else {
-
-            $query = $db->simple_select('themestylesheets', 'stylesheet', "name='".$title."' AND tid='1'");
+        } elseif ($mode == 'javascripts') {
+            $content = fetch_remote_file(
+                'https://github.com/mybb/mybb/raw/' . urlencode(
+                    'mybb_' . $mybb->version_code
+                ) . DIRECTORY_SEPARATOR . urlencode('jscripts/' . $mybb->get_input('title'))
+            );
+        } else {
+            $query = $db->simple_select('themestylesheets', 'stylesheet', "name='" . $title . "' AND tid='1'");
             $content = $db->fetch_field($query, 'stylesheet');
-
         }
 
         if (!$content) {
@@ -346,7 +328,6 @@ fastyle_message($lang->success_template_group_deleted);
         }
 
         fastyle_message(['content' => $content]);
-
     }
 
     // Add template group
@@ -369,13 +350,11 @@ fastyle_message($lang->success_template_group_deleted);
 
     // Add asset
     if ($mybb->input['action'] == 'add') {
-
         // Stylesheet
         if ($mode == 'stylesheets') {
-
             // Remove special characters
             $title = preg_replace('#([^a-z0-9-_\.]+)#i', '', $mybb->get_input('title'));
-            if (!$title or $title == ".css") {
+            if (!$title or $title == '.css') {
                 fastyle_message($lang->error_missing_stylesheet_name, 'error');
             }
 
@@ -392,10 +371,10 @@ fastyle_message($lang->success_template_group_deleted);
                 'lastmodified' => TIME_NOW
             ];
 
-            $sid = $db->insert_query("themestylesheets", $insert_array);
+            $sid = $db->insert_query('themestylesheets', $insert_array);
 
             if (!cache_stylesheet($theme['tid'], str_replace('/', '', $title), $title)) {
-                $db->update_query("themestylesheets", ['cachefile' => "css.php?stylesheet={$sid}"], "sid='{$sid}'", 1);
+                $db->update_query('themestylesheets', ['cachefile' => "css.php?stylesheet={$sid}"], "sid='{$sid}'", 1);
             }
 
             // Update the CSS file list for this theme
@@ -405,21 +384,20 @@ fastyle_message($lang->success_template_group_deleted);
             log_admin_action($sid, $title, $theme['tid'], htmlspecialchars_uni($theme['name']));
 
             fastyle_message($lang->sprintf($lang->fastyle_success_saved, $title));
-
-        }
-        // JavaScript
+        } // JavaScript
         elseif ($mode == 'javascripts') {
-
             // Remove special characters
             $title = preg_replace('#([^a-zA-Z0-9-_\.\/]+)#i', '', $mybb->get_input('title'));
-            if (!$title or $title == ".css") {
-                fastyle_message('The script title contains invalid characters. You can only use letters, numbers and underscore.', 'error');
+            if (!$title or $title == '.css') {
+                fastyle_message(
+                    'The script title contains invalid characters. You can only use letters, numbers and underscore.',
+                    'error'
+                );
             }
 
             $folder = MYBB_ROOT . 'jscripts';
 
             if (is_writable($folder)) {
-
                 $filename = $folder . DIRECTORY_SEPARATOR . $title;
 
                 if (file_exists($filename)) {
@@ -435,28 +413,26 @@ fastyle_message($lang->success_template_group_deleted);
                 if (file_put_contents($filename, '', FILE_APPEND) === false) {
                     fastyle_message($lang->fastyle_error_could_not_create_file, 'error');
                 }
-
-            }
-            else {
+            } else {
                 fastyle_message($lang->fastyle_error_dir_not_writable, 'error');
             }
 
             fastyle_message($lang->sprintf($lang->fastyle_success_saved, $title));
-
         }
 
         // Template
         if (empty($mybb->get_input('title'))) {
             $errors[] = $lang->error_missing_set_title;
-        }
-        else {
+        } else {
+            $query = $db->simple_select(
+                'templates',
+                'COUNT(tid) as count',
+                "title='" . $title . "' AND (sid = '-2' OR sid = '{$sid}')"
+            );
 
-            $query = $db->simple_select("templates", "COUNT(tid) as count", "title='" . $title . "' AND (sid = '-2' OR sid = '{$sid}')");
-
-            if ($db->fetch_field($query, "count") > 0) {
+            if ($db->fetch_field($query, 'count') > 0) {
                 $errors[] = $lang->error_already_exists;
             }
-
         }
 
         if (!isset($templateSets[$sid])) {
@@ -481,7 +457,7 @@ fastyle_message($lang->success_template_group_deleted);
             'dateline' => TIME_NOW
         ];
 
-        $tid = $db->insert_query("templates", $templateArray);
+        $tid = $db->insert_query('templates', $templateArray);
 
         // Log admin action
         log_admin_action($tid, $mybb->get_input('title'), $sid, $templateSets[$sid]);
@@ -492,11 +468,9 @@ fastyle_message($lang->success_template_group_deleted);
         ];
 
         fastyle_message($data);
-
     }
 
     if ($mybb->input['action'] == 'saveorder') {
-
         if (!is_array($mybb->input['disporder'])) {
             fastyle_message($lang->error_no_display_order, 'error');
         }
@@ -507,31 +481,26 @@ fastyle_message($lang->success_template_group_deleted);
         $inherited_load = [];
 
         foreach ($file_stylesheets as $file => $action_stylesheet) {
-
             if ($file == 'inherited' or !is_array($action_stylesheet)) {
                 continue;
             }
 
             foreach ($action_stylesheet as $action => $style) {
-
                 foreach ($style as $stylesheet) {
-
                     $stylesheets[$stylesheet]['applied_to'][$file][] = $action;
 
-                    if (is_array($file_stylesheets['inherited'][$file."_".$action]) and in_array($stylesheet, array_keys($file_stylesheets['inherited'][$file."_".$action]))) {
+                    if (is_array($file_stylesheets['inherited'][$file . '_' . $action]) and in_array(
+                            $stylesheet,
+                            array_keys($file_stylesheets['inherited'][$file . '_' . $action])
+                        )) {
+                        $stylesheets[$stylesheet]['inherited'] = $file_stylesheets['inherited'][$file . '_' . $action];
 
-                        $stylesheets[$stylesheet]['inherited'] = $file_stylesheets['inherited'][$file."_".$action];
-
-                        foreach ($file_stylesheets['inherited'][$file."_".$action] as $value) {
+                        foreach ($file_stylesheets['inherited'][$file . '_' . $action] as $value) {
                             $inherited_load[] = $value;
                         }
-
                     }
-
                 }
-
             }
-
         }
 
         $inherited_load[] = $tid;
@@ -541,24 +510,28 @@ fastyle_message($lang->success_template_group_deleted);
         $theme_stylesheets = [];
 
         if (count($inherited_load) > 0) {
-
-            $query = $db->simple_select("themes", "tid, name", "tid IN (".implode(",", $inherited_load).")");
+            $query = $db->simple_select('themes', 'tid, name', 'tid IN (' . implode(',', $inherited_load) . ')');
 
             while ($inherited_theme = $db->fetch_array($query)) {
                 $inherited_themes[$inherited_theme['tid']] = $inherited_theme['name'];
             }
 
-            $query = $db->simple_select("themestylesheets", "*", "", ['order_by' => 'sid DESC, tid', 'order_dir' => 'desc']);
+            $query = $db->simple_select(
+                'themestylesheets',
+                '*',
+                '',
+                ['order_by' => 'sid DESC, tid', 'order_dir' => 'desc']
+            );
             while ($theme_stylesheet = $db->fetch_array($query)) {
-
-                if (!isset($theme_stylesheets[$theme_stylesheet['name']]) && in_array($theme_stylesheet['tid'], $inherited_load)) {
+                if (!isset($theme_stylesheets[$theme_stylesheet['name']]) && in_array(
+                        $theme_stylesheet['tid'],
+                        $inherited_load
+                    )) {
                     $theme_stylesheets[$theme_stylesheet['name']] = $theme_stylesheet;
                 }
 
                 $theme_stylesheets[$theme_stylesheet['sid']] = $theme_stylesheet['name'];
-
             }
-
         }
 
         $mybb->input['disporder'] = array_flip($mybb->input['disporder']);
@@ -566,28 +539,24 @@ fastyle_message($lang->success_template_group_deleted);
         $orders = [];
 
         foreach ($theme_stylesheets as $stylesheet => $properties) {
-
             if (is_array($properties)) {
-
-                $order = (int) $mybb->input['disporder'][$properties['sid']];
+                $order = (int)$mybb->input['disporder'][$properties['sid']];
 
                 $orders[$properties['name']] = $order;
-
             }
-
         }
 
         asort($orders, SORT_NUMERIC);
 
         // Save the orders in the theme properties
-        $properties = (array) $theme['properties'];
+        $properties = (array)$theme['properties'];
         $properties['disporder'] = $orders;
 
         $update_array = [
-            "properties" => $db->escape_string(my_serialize($properties))
+            'properties' => $db->escape_string(my_serialize($properties))
         ];
 
-        $db->update_query("themes", $update_array, "tid = '{$theme['tid']}'");
+        $db->update_query('themes', $update_array, "tid = '{$theme['tid']}'");
 
         if ($theme['def'] == 1) {
             $cache->update_default_theme();
@@ -599,7 +568,5 @@ fastyle_message($lang->success_template_group_deleted);
         update_theme_stylesheet_list($theme['tid'], false, true);
 
         fastyle_message($lang->fastyle_success_order_saved);
-
     }
-
 }
