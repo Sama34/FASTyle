@@ -6,6 +6,9 @@ if (!defined('IN_MYBB')) {
 
 require_once MYBB_ADMIN_DIR . 'inc/functions_themes.php';
 
+global $lang, $mybb, $db, $cache;
+global $page;
+
 $lang->load('style_themes');
 $lang->load('style_templates');
 $lang->load('fastyle');
@@ -111,6 +114,8 @@ if (isset($mybb->input['api'])) {
         }
     }
 
+    $revert = false;
+
     // Revert asset
     if ($mybb->input['action'] == 'revert') {
         if ($mode == 'templates') {
@@ -155,7 +160,7 @@ if (isset($mybb->input['api'])) {
 
             if ($mybb->input['content'] != 'Not Found') {
                 $mybb->input['action'] = 'edit_javascript';
-                $revert = 1;
+                $revert = true;
             } else {
                 fastyle_message($lang->fastyle_error_resource_not_found);
             }
@@ -419,6 +424,8 @@ fastyle_message($lang->success_template_group_deleted);
 
             fastyle_message($lang->sprintf($lang->fastyle_success_saved, $title));
         }
+
+        $errors = [];
 
         // Template
         if (empty($mybb->get_input('title'))) {

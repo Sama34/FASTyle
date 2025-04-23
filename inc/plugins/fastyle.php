@@ -21,6 +21,8 @@ function fastyle_info()
 {
     fastyle_plugin_edit();
 
+    $description = '';
+
     if (fastyle_is_installed()) {
         global $PL, $mybb;
 
@@ -178,6 +180,8 @@ function fastyle_revert_core_edits($apply = false)
     return $PL->edit_core('fastyle', $mybb->config['admin_dir'] . '/modules/style/themes.php', [], $apply);
 }
 
+global $plugins;
+
 // Hooks
 if (defined('IN_ADMINCP')) {
     $plugins->add_hook('admin_load', 'fastyle_ad');
@@ -278,10 +282,12 @@ function fastyle_themes_hijack_function()
     $lang->load('style_templates');
     $lang->load('fastyle');
 
+    $sid = 0;
+
     if ($theme['properties']['templateset']) {
         $sid = (int)$theme['properties']['templateset'];
     } elseif ($mybb->get_input('sid', MyBB::INPUT_INT)) {
-        $sid = (int)$mybb->get_input('sid', MyBB::INPUT_INT);
+        $sid = $mybb->get_input('sid', MyBB::INPUT_INT);
     }
 
     // Get a list of templates
@@ -314,7 +320,7 @@ function fastyle_themes_hijack_function()
     // Set the template group keys to lowercase for case insensitive comparison.
     $template_groups = array_change_key_case($template_groups, CASE_LOWER);
 
-    $where = ($sid == -1) ? "sid='{$sid}'" : "sid='{$sid}' OR sid = '-2'";
+    $where = ($sid === -1) ? "sid='{$sid}'" : "sid='{$sid}' OR sid = '-2'";
 
     // Load the list of templates
     $query = $db->simple_select(
@@ -347,12 +353,6 @@ function fastyle_themes_hijack_function()
             $template_groups[$group]['templates'][$template['title']] = $template;
         } // Otherwise, if we are down to master templates we need to do a few extra things
         else {
-            $template_groups[$group]['templates'][$template['title']]['template'] = $template_groups[$group]['templates'][$template['title']]['template'] ?? '';
-
-            $template['template'] = $template['template'] ?? '';
-
-            $template_groups[$group]['templates'][$template['title']]['sid'] = $template_groups[$group]['templates'][$template['title']]['sid'] ?? 0;
-
             // Master template
             if (!isset($template_groups[$group]['templates'][$template['title']])) {
                 $template['original'] = true;
@@ -591,7 +591,7 @@ function fastyle_themes_hijack_function()
     $resourcelist .= '<ul>';
 
     // Global templates
-    if ($sid == -1 and !empty($template_groups[-1]['templates'])) {
+    if ($sid === -1 and !empty($template_groups[-1]['templates'])) {
         foreach ($template_groups[-1]['templates'] as $template) {
             $resourcelist .= "<li data-tid='{$template['tid']}' data-title='{$template['title']}' data-status='original'><i class='fas fa-file-code'></i> {$template['title']}</li>";
         }
