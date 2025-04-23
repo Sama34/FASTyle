@@ -55,8 +55,8 @@ function fastyle_info()
         'name' => 'FASTyle',
         'description' => 'An all-in-one utility to improve and speed up stylesheets, settings and templates management.' . $description,
         'author' => 'Shade',
-        'website' => 'https://www.mybboost.com/forum-fastyle',
-        'version' => '2.3',
+        'website' => 'https://github.com/Sama34/FASTyle',
+        'version' => '3.0',
         'codename' => 'fastyle',
         'compatibility' => '18*'
     ];
